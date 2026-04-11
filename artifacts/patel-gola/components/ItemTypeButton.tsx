@@ -31,64 +31,79 @@ export default function ItemTypeButton({
   };
 
   return (
-    <Pressable
-      onPress={handlePress}
-      onLongPress={handleLongPress}
-      style={({ pressed }) => [
-        styles.button,
-        {
-          backgroundColor: quantity > 0 ? colors.primary : colors.card,
-          borderRadius: colors.radius,
-          borderColor: colors.primary,
-          borderWidth: 2,
-          opacity: pressed ? 0.85 : 1,
-          transform: [{ scale: pressed ? 0.95 : 1 }],
-        },
-      ]}
-    >
-      <Text
-        style={[
-          styles.name,
-          { color: quantity > 0 ? colors.primaryForeground : colors.primary },
-        ]}
-      >
-        {itemType.name}
-      </Text>
-      <Text
-        style={[
-          styles.price,
+    <View style={styles.wrapper}>
+      <Pressable
+        onPress={handlePress}
+        onLongPress={handleLongPress}
+        style={({ pressed }) => [
+          styles.button,
           {
-            color: quantity > 0
-              ? colors.primaryForeground
-              : colors.mutedForeground,
+            backgroundColor: quantity > 0 ? colors.primary : colors.card,
+            borderRadius: colors.radius,
+            borderColor: colors.primary,
+            borderWidth: 2,
+            opacity: pressed ? 0.85 : 1,
+            transform: [{ scale: pressed ? 0.95 : 1 }],
           },
         ]}
       >
-        Rs.{itemType.price}
-      </Text>
+        <Text
+          style={[
+            styles.name,
+            { color: quantity > 0 ? colors.primaryForeground : colors.primary },
+          ]}
+        >
+          {itemType.name}
+        </Text>
+        <Text
+          style={[
+            styles.price,
+            {
+              color: quantity > 0
+                ? colors.primaryForeground
+                : colors.mutedForeground,
+            },
+          ]}
+        >
+          Rs.{itemType.price}
+        </Text>
+      </Pressable>
       {quantity > 0 && (
-        <View style={[styles.badge, { backgroundColor: colors.destructive }]}>
-          <Text style={styles.badgeText}>{quantity}</Text>
-        </View>
+        <>
+          <Pressable
+            onPress={handleLongPress}
+            style={[styles.minusBadge, { backgroundColor: colors.card }]}
+          >
+            <Text style={[styles.minusText, { color: colors.destructive }]}>
+              -
+            </Text>
+          </Pressable>
+          <View style={[styles.badge, { backgroundColor: colors.destructive }]}>
+            <Text style={styles.badgeText}>{quantity}</Text>
+          </View>
+        </>
       )}
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
+  wrapper: {
     flex: 1,
+    marginHorizontal: 3,
+    position: "relative",
+  },
+  button: {
+    width: "100%",
     paddingVertical: 8,
     paddingHorizontal: 4,
     alignItems: "center",
     justifyContent: "center",
-    marginHorizontal: 3,
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    position: "relative",
   },
   name: {
     fontSize: 11,
@@ -114,6 +129,26 @@ const styles = StyleSheet.create({
   badgeText: {
     color: "#fff",
     fontSize: 11,
+    fontFamily: "Inter_700Bold",
+  },
+  minusBadge: {
+    position: "absolute",
+    top: -8,
+    left: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+  },
+  minusText: {
+    fontSize: 16,
+    lineHeight: 18,
     fontFamily: "Inter_700Bold",
   },
 });
