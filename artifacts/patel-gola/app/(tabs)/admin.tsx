@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
+import { useTheme, type ThemeMode } from "@/context/ThemeContext";
 import { useColors } from "@/hooks/useColors";
 
 const PRESET_COLORS = [
@@ -39,6 +40,7 @@ const PRESET_COLORS = [
 
 export default function AdminScreen() {
   const colors = useColors();
+  const { themeMode, setThemeMode } = useTheme();
   const insets = useSafeAreaInsets();
   const {
     flavors,
@@ -50,7 +52,7 @@ export default function AdminScreen() {
     updateItemTypePrice,
   } = useApp();
 
-  const [tab, setTab] = useState<"flavors" | "prices">("flavors");
+  const [tab, setTab] = useState<"flavors" | "prices" | "theme">("flavors");
   const [newFlavorName, setNewFlavorName] = useState("");
   const [newFlavorColor, setNewFlavorColor] = useState(PRESET_COLORS[0]);
   const [editingFlavor, setEditingFlavor] = useState<string | null>(null);
@@ -171,6 +173,31 @@ export default function AdminScreen() {
             ]}
           >
             Prices
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setTab("theme")}
+          style={[
+            styles.tabBtn,
+            {
+              backgroundColor:
+                tab === "theme" ? colors.primary : colors.card,
+              borderRadius: colors.radius,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              {
+                color:
+                  tab === "theme"
+                    ? colors.primaryForeground
+                    : colors.foreground,
+              },
+            ]}
+          >
+            Theme
           </Text>
         </Pressable>
       </View>
@@ -386,7 +413,7 @@ export default function AdminScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         />
-      ) : (
+      ) : tab === "prices" ? (
         <View style={styles.priceSection}>
           {itemTypes.map((type) => (
             <View
@@ -465,6 +492,94 @@ export default function AdminScreen() {
             </View>
           ))}
         </View>
+      ) : (
+        <View style={styles.themeSection}>
+          <Text style={[styles.themeTitle, { color: colors.foreground }]}>
+            App Theme
+          </Text>
+          <Text
+            style={[
+              styles.themeDescription,
+              { color: colors.mutedForeground },
+            ]}
+          >
+            Choose the look that works best at your stall.
+          </Text>
+          {(["light", "dark"] as ThemeMode[]).map((mode) => {
+            const isSelected = themeMode === mode;
+            return (
+              <Pressable
+                key={mode}
+                onPress={() => setThemeMode(mode)}
+                style={[
+                  styles.themeOption,
+                  {
+                    backgroundColor: isSelected ? colors.primary : colors.card,
+                    borderColor: isSelected ? colors.secondary : colors.border,
+                    borderRadius: colors.radius,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.themePreview,
+                    {
+                      backgroundColor:
+                        mode === "dark" ? "#071f19" : "#f7f2e8",
+                      borderColor:
+                        mode === "dark" ? "#d6ad49" : "#0f6b4f",
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.themePreviewDot,
+                      {
+                        backgroundColor:
+                          mode === "dark" ? "#d6ad49" : "#0f6b4f",
+                      },
+                    ]}
+                  />
+                </View>
+                <View style={styles.themeOptionTextWrap}>
+                  <Text
+                    style={[
+                      styles.themeOptionTitle,
+                      {
+                        color: isSelected
+                          ? colors.primaryForeground
+                          : colors.foreground,
+                      },
+                    ]}
+                  >
+                    {mode === "light" ? "White Theme" : "Dark Theme"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.themeOptionSubtitle,
+                      {
+                        color: isSelected
+                          ? colors.primaryForeground
+                          : colors.mutedForeground,
+                      },
+                    ]}
+                  >
+                    {mode === "light"
+                      ? "Bright green and gold"
+                      : "Deep green and gold"}
+                  </Text>
+                </View>
+                {isSelected && (
+                  <Feather
+                    name="check-circle"
+                    size={22}
+                    color={colors.secondary}
+                  />
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
       )}
     </View>
   );
@@ -495,7 +610,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
   addSection: {
@@ -642,5 +757,50 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     borderWidth: 1,
     textAlign: "center",
+  },
+  themeSection: {
+    padding: 12,
+    gap: 12,
+  },
+  themeTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+  },
+  themeDescription: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    marginBottom: 4,
+  },
+  themeOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    borderWidth: 2,
+    gap: 12,
+  },
+  themePreview: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  themePreviewDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  themeOptionTextWrap: {
+    flex: 1,
+  },
+  themeOptionTitle: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+  },
+  themeOptionSubtitle: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    marginTop: 2,
   },
 });

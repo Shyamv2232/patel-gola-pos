@@ -124,7 +124,7 @@ export default function NewOrderScreen() {
       >
         <View style={styles.brandRow}>
           <Image
-            source={require("../../assets/images/pg-logo.png")}
+            source={require("../../assets/images/pg-round-logo.png")}
             style={styles.logo}
           />
           <Text style={styles.stallName}>Patel Gola</Text>
