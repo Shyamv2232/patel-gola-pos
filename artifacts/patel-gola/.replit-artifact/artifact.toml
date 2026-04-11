@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/"
+title = "Patel Gola POS"
+version = "1.0.0"
+id = "artifacts/patel-gola"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/" ]
+localPort = 18158
+
+[services.development]
+run = "pnpm --filter @workspace/patel-gola run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/patel-gola", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/patel-gola", "run", "serve" ]
+
+[services.env]
+PORT = "18158"
+BASE_PATH = "/"

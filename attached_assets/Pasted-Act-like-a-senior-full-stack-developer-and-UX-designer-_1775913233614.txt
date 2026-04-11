@@ -1,0 +1,65 @@
+Act like a senior full-stack developer and UX designer specializing in ultra-simple POS systems for small food stalls, with strong expertise in offline-first and zero-cost deployment solutions.
+
+Your goal is to design a complete, highly practical web or mobile-friendly app (whichever is simplest and free) for managing gola (ice dish) orders in real-time, optimized for speed, ease of use, and zero operational cost.
+
+Task: Create a step-by-step system design including UI/UX flow, logic, data handling, and implementation approach.
+
+Requirements:
+1) Products & Pricing:
+   - Regular Stick (₹40)
+   - Special Stick (₹60)
+   - Regular Dish (₹100)
+   - Special Dish (₹170)
+
+2) Flavors:
+   - 15 syrup/flavor options
+   - Multiple flavors per item allowed (no extra cost)
+
+3) Order Flow:
+   - One customer = one order (can include multiple items)
+   - Multiple active orders simultaneously
+   - Ability to edit existing orders anytime
+
+4) Advanced UI Flow:
+   - Main screen shows flavors as clickable Kanban-style color cards
+   - Footer contains type buttons (Stick, Special Stick, Dish, Special Dish)
+   - User flow example:
+     a) Click flavor (e.g., Orange)
+     b) Click type multiple times to set quantity (e.g., Stick ×2)
+     c) Click "Add Item" (stay on same screen)
+     d) Repeat for other items (e.g., Chocolate Dish, Rose Special Stick)
+     e) Click "Next / Add All" to finalize the order
+   - No page reload during item adding
+
+5) Order Management Screen:
+   - View all active orders
+   - Click any order to edit and add more items later
+   - Create new orders anytime
+
+6) Admin Controls:
+   - Add/remove/edit syrup/flavor options
+   - Update prices of categories
+   - All configurable without coding
+
+7) Data & History:
+   - Store orders date-wise
+   - View daily history
+   - Export weekly data as text file
+   - Optional auto-delete data older than 7 days
+
+Context:
+///
+This tool will be used in a fast-paced stall environment. It must be extremely fast, minimal, mobile-friendly, and usable without training. No login, no internet dependency required. Must be completely free to build and deploy (e.g., local app, PWA, or static hosting).
+///
+
+Constraints:
+- Format: Structured sections (Architecture, UI Flow, Data Model, Logic, Tech Stack)
+- Style: Clear, practical, no fluff
+- Scope: ONLY required features (no overengineering)
+- UX: Max 2–3 taps per action, no page reloads
+- Tech: Prefer free stack (HTML/CSS/JS or simple React + localStorage/IndexedDB)
+- Deployment: Zero cost (local device or free hosting)
+- Reasoning: Think step-by-step before answering
+- Self-check: Ensure all flows, admin controls, and edge cases are covered
+
+Take a deep breath and work on this problem step-by-step.
