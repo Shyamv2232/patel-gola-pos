@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
   Alert,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -110,8 +111,6 @@ export default function NewOrderScreen() {
     selectedFlavors.length > 0 &&
     Object.values(quantities).some((q) => q > 0);
 
-  const webTopPad = Platform.OS === "web" ? 67 : 0;
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View
@@ -123,7 +122,13 @@ export default function NewOrderScreen() {
           },
         ]}
       >
-        <Text style={styles.stallName}>Patel Gola</Text>
+        <View style={styles.brandRow}>
+          <Image
+            source={require("../../assets/images/pg-logo.png")}
+            style={styles.logo}
+          />
+          <Text style={styles.stallName}>Patel Gola</Text>
+        </View>
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{todayOrderCount}</Text>
@@ -165,7 +170,7 @@ export default function NewOrderScreen() {
           </View>
         )}
 
-        <View style={{ height: 160 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
       <View
@@ -174,8 +179,8 @@ export default function NewOrderScreen() {
           {
             backgroundColor: colors.card,
             borderTopColor: colors.border,
-            paddingBottom:
-              Platform.OS === "web" ? 34 : Math.max(insets.bottom, 10),
+            paddingBottom: 10,
+            marginBottom: Platform.OS === "web" ? 72 : 70,
           },
         ]}
       >
@@ -229,11 +234,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingHorizontal: 14,
+    paddingBottom: 10,
+  },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  logo: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   stallName: {
-    fontSize: 26,
+    fontSize: 23,
     fontFamily: "Inter_700Bold",
     color: "#fff",
     textAlign: "center",
@@ -242,14 +258,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 6,
     gap: 16,
   },
   statItem: {
     alignItems: "center",
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: "Inter_700Bold",
     color: "#fff",
   },
@@ -266,10 +282,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 12,
+    padding: 10,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     marginBottom: 10,
   },
@@ -288,12 +304,12 @@ const styles = StyleSheet.create({
   },
   footer: {
     borderTopWidth: 1,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingHorizontal: 8,
   },
   typeRow: {
     flexDirection: "row",
-    marginBottom: 8,
+    marginBottom: 6,
     paddingHorizontal: 4,
   },
   addItemBtn: {
@@ -301,7 +317,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    paddingVertical: 12,
+    paddingVertical: 10,
     marginHorizontal: 12,
     marginBottom: 8,
   },

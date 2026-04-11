@@ -78,8 +78,8 @@ export default function ItemTypeButton({
 const styles = StyleSheet.create({
   button: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 3,
@@ -91,12 +91,12 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   name: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_700Bold",
     textAlign: "center",
   },
   price: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Inter_500Medium",
     marginTop: 2,
   },
@@ -104,16 +104,16 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -8,
     right: -4,
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 4,
   },
   badgeText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_700Bold",
   },
 });

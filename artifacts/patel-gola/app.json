@@ -4,21 +4,21 @@
     "slug": "patel-gola",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/pg-logo.png",
     "scheme": "patel-gola",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/icon.png",
+      "image": "./assets/images/pg-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ff6b35"
+      "backgroundColor": "#0f5f46"
     },
     "ios": {
       "supportsTablet": false
     },
     "android": {},
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/pg-logo.png"
     },
     "plugins": [
       [
