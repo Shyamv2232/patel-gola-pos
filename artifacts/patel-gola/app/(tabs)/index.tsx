@@ -1,5 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -27,6 +28,7 @@ function generateId(): string {
 export default function NewOrderScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { flavors, itemTypes, createOrder, todayRevenue, todayOrderCount } =
     useApp();
 
@@ -99,6 +101,7 @@ export default function NewOrderScreen() {
     setCurrentItems([]);
     setSelectedFlavors([]);
     setQuantities({});
+    router.push("/orders");
   };
 
   const handleClearOrder = () => {

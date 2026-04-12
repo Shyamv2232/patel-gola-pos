@@ -36,6 +36,7 @@ export default function OrderDetailScreen() {
     completedOrders,
     getOrderTotal,
     addItemsToOrder,
+    updateItemInOrder,
     removeItemFromOrder,
     completeOrder,
   } = useApp();
@@ -47,6 +48,10 @@ export default function OrderDetailScreen() {
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [showAddMore, setShowAddMore] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editFlavors, setEditFlavors] = useState<string[]>([]);
+  const [editTypeId, setEditTypeId] = useState<string>("");
+  const [editQuantity, setEditQuantity] = useState(1);
 
   if (!order) {
     return (
@@ -131,8 +136,47 @@ export default function OrderDetailScreen() {
   };
 
   const handleRemoveItem = (itemId: string) => {
+    if (editingItemId === itemId) {
+      setEditingItemId(null);
+    }
     removeItemFromOrder(order.id, itemId);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  };
+
+  const startEditItem = (item: OrderItem) => {
+    setShowAddMore(false);
+    setEditingItemId(item.id);
+    setEditFlavors([...item.flavorIds]);
+    setEditTypeId(item.typeId);
+    setEditQuantity(item.quantity);
+  };
+
+  const cancelEditItem = () => {
+    setEditingItemId(null);
+    setEditFlavors([]);
+    setEditTypeId("");
+    setEditQuantity(1);
+  };
+
+  const toggleEditFlavor = (id: string) => {
+    setEditFlavors((prev) =>
+      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
+    );
+  };
+
+  const saveEditItem = () => {
+    if (!editingItemId || editFlavors.length === 0 || !editTypeId) {
+      Alert.alert("Error", "Select at least one flavor and one item type.");
+      return;
+    }
+    updateItemInOrder(order.id, {
+      id: editingItemId,
+      flavorIds: editFlavors,
+      typeId: editTypeId,
+      quantity: editQuantity,
+    });
+    cancelEditItem();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   const finishOrder = (paymentMode: PaymentMode) => {
@@ -186,6 +230,7 @@ export default function OrderDetailScreen() {
             .filter(Boolean)
             .join(", ");
           const itemTotal = (type?.price ?? 0) * item.quantity;
+          const isEditing = editingItemId === item.id;
           return (
             <View
               key={item.id}
@@ -197,39 +242,229 @@ export default function OrderDetailScreen() {
                 },
               ]}
             >
-              <View style={styles.itemInfo}>
-                <Text
-                  style={[styles.itemType, { color: colors.foreground }]}
-                >
-                  {type?.name} x{item.quantity}
+              <View style={styles.itemTopRow}>
+                <View style={styles.itemInfo}>
+                  <Text
+                    style={[styles.itemType, { color: colors.foreground }]}
+                  >
+                    {type?.name} x{item.quantity}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.itemFlavors,
+                      { color: colors.mutedForeground },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {flavorNames}
+                  </Text>
+                </View>
+                <Text style={[styles.itemPrice, { color: colors.primary }]}>
+                  Rs.{itemTotal}
                 </Text>
-                <Text
-                  style={[
-                    styles.itemFlavors,
-                    { color: colors.mutedForeground },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {flavorNames}
-                </Text>
+                {!order.completed && (
+                  <View style={styles.itemActions}>
+                    <Pressable
+                      onPress={() =>
+                        isEditing ? cancelEditItem() : startEditItem(item)
+                      }
+                      style={[
+                        styles.smallActionBtn,
+                        { backgroundColor: colors.info + "18" },
+                      ]}
+                    >
+                      <Feather
+                        name={isEditing ? "chevron-up" : "edit-2"}
+                        size={14}
+                        color={colors.info}
+                      />
+                    </Pressable>
+                    <Pressable
+                      onPress={() => handleRemoveItem(item.id)}
+                      style={[
+                        styles.smallActionBtn,
+                        { backgroundColor: colors.destructive + "15" },
+                      ]}
+                    >
+                      <Feather
+                        name="x"
+                        size={14}
+                        color={colors.destructive}
+                      />
+                    </Pressable>
+                  </View>
+                )}
               </View>
-              <Text style={[styles.itemPrice, { color: colors.primary }]}>
-                Rs.{itemTotal}
-              </Text>
-              {!order.completed && (
-                <Pressable
-                  onPress={() => handleRemoveItem(item.id)}
+
+              {isEditing && (
+                <View
                   style={[
-                    styles.removeBtn,
-                    { backgroundColor: colors.destructive + "15" },
+                    styles.editPanel,
+                    { borderTopColor: colors.border },
                   ]}
                 >
-                  <Feather
-                    name="x"
-                    size={14}
-                    color={colors.destructive}
-                  />
-                </Pressable>
+                  <Text
+                    style={[
+                      styles.editLabel,
+                      { color: colors.mutedForeground },
+                    ]}
+                  >
+                    Change Flavors
+                  </Text>
+                  <View style={styles.flavorGrid}>
+                    {activeFlavors.map((flavor) => (
+                      <FlavorCard
+                        key={flavor.id}
+                        flavor={flavor}
+                        selected={editFlavors.includes(flavor.id)}
+                        onPress={() => toggleEditFlavor(flavor.id)}
+                      />
+                    ))}
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.editLabel,
+                      { color: colors.mutedForeground, marginTop: 8 },
+                    ]}
+                  >
+                    Change Type
+                  </Text>
+                  <View style={styles.editTypeGrid}>
+                    {itemTypes.map((itemType) => {
+                      const selected = editTypeId === itemType.id;
+                      return (
+                        <Pressable
+                          key={itemType.id}
+                          onPress={() => setEditTypeId(itemType.id)}
+                          style={[
+                            styles.editTypeBtn,
+                            {
+                              backgroundColor: selected
+                                ? colors.primary
+                                : colors.background,
+                              borderColor: colors.primary,
+                              borderRadius: colors.radius,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.editTypeName,
+                              {
+                                color: selected
+                                  ? colors.primaryForeground
+                                  : colors.primary,
+                              },
+                            ]}
+                          >
+                            {itemType.name}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.editTypePrice,
+                              {
+                                color: selected
+                                  ? colors.primaryForeground
+                                  : colors.mutedForeground,
+                              },
+                            ]}
+                          >
+                            Rs.{itemType.price}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <View style={styles.quantityRow}>
+                    <Text
+                      style={[
+                        styles.editLabel,
+                        { color: colors.mutedForeground },
+                      ]}
+                    >
+                      Quantity
+                    </Text>
+                    <View style={styles.quantityControls}>
+                      <Pressable
+                        onPress={() =>
+                          setEditQuantity((current) =>
+                            Math.max(1, current - 1)
+                          )
+                        }
+                        style={[
+                          styles.quantityBtn,
+                          { backgroundColor: colors.card, borderColor: colors.border },
+                        ]}
+                      >
+                        <Feather
+                          name="minus"
+                          size={16}
+                          color={colors.primary}
+                        />
+                      </Pressable>
+                      <Text
+                        style={[
+                          styles.quantityText,
+                          { color: colors.foreground },
+                        ]}
+                      >
+                        {editQuantity}
+                      </Text>
+                      <Pressable
+                        onPress={() =>
+                          setEditQuantity((current) => current + 1)
+                        }
+                        style={[
+                          styles.quantityBtn,
+                          { backgroundColor: colors.card, borderColor: colors.border },
+                        ]}
+                      >
+                        <Feather
+                          name="plus"
+                          size={16}
+                          color={colors.primary}
+                        />
+                      </Pressable>
+                    </View>
+                  </View>
+
+                  <View style={styles.editActionRow}>
+                    <Pressable
+                      onPress={cancelEditItem}
+                      style={[
+                        styles.editCancelBtn,
+                        {
+                          borderColor: colors.border,
+                          borderRadius: colors.radius,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.editCancelText,
+                          { color: colors.mutedForeground },
+                        ]}
+                      >
+                        Cancel
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={saveEditItem}
+                      style={[
+                        styles.editSaveBtn,
+                        {
+                          backgroundColor: colors.success,
+                          borderRadius: colors.radius,
+                        },
+                      ]}
+                    >
+                      <Feather name="check" size={16} color="#fff" />
+                      <Text style={styles.editSaveText}>Save Changes</Text>
+                    </Pressable>
+                  </View>
+                </View>
               )}
             </View>
           );
@@ -364,8 +599,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   itemCard: {
-    flexDirection: "row",
-    alignItems: "center",
     padding: 12,
     marginBottom: 8,
     elevation: 1,
@@ -373,6 +606,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
+  },
+  itemTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   itemInfo: {
     flex: 1,
@@ -391,12 +628,102 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     marginRight: 10,
   },
-  removeBtn: {
+  itemActions: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  smallActionBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
+  },
+  editPanel: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  editLabel: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    marginBottom: 6,
+  },
+  editTypeGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  editTypeBtn: {
+    width: "48%",
+    borderWidth: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    alignItems: "center",
+  },
+  editTypeName: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  editTypePrice: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    marginTop: 2,
+  },
+  quantityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
+  quantityControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  quantityBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quantityText: {
+    minWidth: 24,
+    textAlign: "center",
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+  },
+  editActionRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 12,
+  },
+  editCancelBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    paddingVertical: 11,
+  },
+  editCancelText: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+  },
+  editSaveBtn: {
+    flex: 1.4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 11,
+  },
+  editSaveText: {
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
   },
   addMoreSection: {},
   flavorGrid: {

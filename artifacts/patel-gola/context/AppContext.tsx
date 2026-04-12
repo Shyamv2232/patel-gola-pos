@@ -29,6 +29,7 @@ interface AppContextType {
   updateItemTypePrice: (id: string, price: number) => void;
   createOrder: (items: OrderItem[]) => void;
   addItemsToOrder: (orderId: string, items: OrderItem[]) => void;
+  updateItemInOrder: (orderId: string, item: OrderItem) => void;
   removeItemFromOrder: (orderId: string, itemId: string) => void;
   completeOrder: (orderId: string, paymentMode: PaymentMode) => void;
   deleteOrder: (orderId: string) => void;
@@ -142,6 +143,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     []
   );
+
+  const updateItemInOrder = useCallback((orderId: string, item: OrderItem) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              items: o.items.map((existing) =>
+                existing.id === item.id ? item : existing
+              ),
+            }
+          : o
+      )
+    );
+  }, []);
 
   const removeItemFromOrder = useCallback(
     (orderId: string, itemId: string) => {
@@ -259,6 +275,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateItemTypePrice,
         createOrder,
         addItemsToOrder,
+        updateItemInOrder,
         removeItemFromOrder,
         completeOrder,
         deleteOrder,
