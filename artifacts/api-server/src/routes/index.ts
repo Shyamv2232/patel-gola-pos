@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health.js";
 
-const router: IRouter = Router();
+const router: any = Router();
 
 router.use(healthRouter);
 
