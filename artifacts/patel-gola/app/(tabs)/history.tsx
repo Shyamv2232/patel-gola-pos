@@ -57,31 +57,50 @@ export default function HistoryScreen() {
   const handleExport = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const data = exportWeeklyData();
-    try {
-      await Share.share({ message: data, title: "Patel Gola Weekly Report" });
-    } catch {
-      Alert.alert("Export", "Could not share the report.");
+    if (Platform.OS === "web") {
+      const blob = new Blob([data], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `patel-gola-weekly-report-${getDateKey(new Date())}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      try {
+        await Share.share({ message: data, title: "Patel Gola Weekly Report" });
+      } catch {
+        Alert.alert("Export", "Could not share the report.");
+      }
     }
   };
 
   const handleClearOld = () => {
-    Alert.alert(
-      "Clear Old Data",
-      "This will remove all orders older than 7 days. Continue?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: () => {
-            clearOldData();
-            Haptics.notificationAsync(
-              Haptics.NotificationFeedbackType.Success
-            );
+    if (Platform.OS === "web") {
+      if (window.confirm("This will remove all orders older than 7 days. Continue?")) {
+        clearOldData();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } else {
+      Alert.alert(
+        "Clear Old Data",
+        "This will remove all orders older than 7 days. Continue?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Clear",
+            style: "destructive",
+            onPress: () => {
+              clearOldData();
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success
+              );
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   return (
