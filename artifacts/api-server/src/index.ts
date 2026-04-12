@@ -25,3 +25,5 @@ if (!process.env.VERCEL) {
     logger.info({ port }, "Server listening");
   });
 }
+
+export default app;
