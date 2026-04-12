@@ -31,4 +31,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
+app.get("/", (_req: any, res: any) => {
+  res.json({ message: "Patel Gola POS API Server is running" });
+});
+
 export default app;
