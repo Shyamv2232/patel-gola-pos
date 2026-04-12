@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import FlavorCard from "@/components/FlavorCard";
 import ItemTypeButton from "@/components/ItemTypeButton";
+import PaymentModal from "@/components/PaymentModal";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import type { OrderItem, PaymentMode } from "@/constants/flavors";
@@ -52,6 +53,7 @@ export default function OrderDetailScreen() {
   const [editFlavors, setEditFlavors] = useState<string[]>([]);
   const [editTypeId, setEditTypeId] = useState<string>("");
   const [editQuantity, setEditQuantity] = useState(1);
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
 
   if (!order) {
     return (
@@ -181,16 +183,21 @@ export default function OrderDetailScreen() {
 
   const finishOrder = (paymentMode: PaymentMode) => {
     completeOrder(order.id, paymentMode);
+    setPaymentModalVisible(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   };
 
   const handleComplete = () => {
-    Alert.alert("Payment Mode", "Select payment mode for this order.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Cash", onPress: () => finishOrder("cash") },
-      { text: "Online", onPress: () => finishOrder("online") },
-    ]);
+    if (Platform.OS === "web") {
+      setPaymentModalVisible(true);
+    } else {
+      Alert.alert("Payment Mode", "Select payment mode for this order.", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Cash", onPress: () => finishOrder("cash") },
+        { text: "Online", onPress: () => finishOrder("online") },
+      ]);
+    }
   };
 
   const hasSelection =
@@ -559,6 +566,12 @@ export default function OrderDetailScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <PaymentModal
+        visible={paymentModalVisible}
+        onClose={() => setPaymentModalVisible(false)}
+        onSelect={finishOrder}
+      />
     </View>
   );
 }
