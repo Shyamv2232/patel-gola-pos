@@ -18,13 +18,18 @@
     },
     "android": {},
     "web": {
-      "favicon": "./assets/images/pg-round-logo.png"
+      "favicon": "./assets/images/pg-round-logo.png",
+      "bundler": "metro",
+      "pwa": {
+        "display": "standalone",
+        "themeColor": "#0f5f46"
+      }
     },
     "plugins": [
       [
         "expo-router",
         {
-          "origin": "https://replit.com/"
+          "origin": "https://YOUR-APP-NAME.vercel.app"
         }
       ],
       "expo-font",
