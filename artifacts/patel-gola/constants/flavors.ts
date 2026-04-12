@@ -43,9 +43,12 @@ export interface OrderItem {
   quantity: number;
 }
 
+export type PaymentMode = "cash" | "online";
+
 export interface Order {
   id: string;
   items: OrderItem[];
   createdAt: string;
   completed: boolean;
+  paymentMode?: PaymentMode;
 }

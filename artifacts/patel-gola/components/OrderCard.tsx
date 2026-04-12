@@ -1,11 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
-import type { Order } from "@/constants/flavors";
+import type { Order, PaymentMode } from "@/constants/flavors";
 
 interface Props {
   order: Order;
@@ -24,9 +24,17 @@ export default function OrderCard({ order, onPress, showActions = true }: Props)
     minute: "2-digit",
   });
 
-  const handleComplete = () => {
+  const finishOrder = (paymentMode: PaymentMode) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    completeOrder(order.id);
+    completeOrder(order.id, paymentMode);
+  };
+
+  const handleComplete = () => {
+    Alert.alert("Payment Mode", "Select payment mode for this order.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Cash", onPress: () => finishOrder("cash") },
+      { text: "Online", onPress: () => finishOrder("online") },
+    ]);
   };
 
   const handleDelete = () => {
@@ -82,6 +90,31 @@ export default function OrderCard({ order, onPress, showActions = true }: Props)
           <Text style={[styles.moreText, { color: colors.info }]}>
             +{order.items.length - 3} more
           </Text>
+        )}
+        {order.completed && (
+          <View
+            style={[
+              styles.paymentBadge,
+              {
+                backgroundColor: colors.secondary,
+                borderRadius: colors.radius,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.paymentText,
+                { color: colors.secondaryForeground },
+              ]}
+            >
+              Payment:{" "}
+              {order.paymentMode === "online"
+                ? "Online"
+                : order.paymentMode === "cash"
+                  ? "Cash"
+                  : "Not selected"}
+            </Text>
+          </View>
         )}
       </View>
 
@@ -150,6 +183,16 @@ const styles = StyleSheet.create({
   moreText: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
+  },
+  paymentBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: 6,
+  },
+  paymentText: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
   },
   actions: {
     flexDirection: "row",

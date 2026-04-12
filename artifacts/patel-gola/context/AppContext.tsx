@@ -14,6 +14,7 @@ import {
   type ItemType,
   type Order,
   type OrderItem,
+  type PaymentMode,
 } from "@/constants/flavors";
 
 interface AppContextType {
@@ -29,7 +30,7 @@ interface AppContextType {
   createOrder: (items: OrderItem[]) => void;
   addItemsToOrder: (orderId: string, items: OrderItem[]) => void;
   removeItemFromOrder: (orderId: string, itemId: string) => void;
-  completeOrder: (orderId: string) => void;
+  completeOrder: (orderId: string, paymentMode: PaymentMode) => void;
   deleteOrder: (orderId: string) => void;
   getOrderTotal: (order: Order) => number;
   getDailyOrders: (date: string) => Order[];
@@ -155,10 +156,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const completeOrder = useCallback((orderId: string) => {
+  const completeOrder = useCallback((orderId: string, paymentMode: PaymentMode) => {
     setOrders((prev) =>
       prev.map((o) =>
-        o.id === orderId ? { ...o, completed: true } : o
+        o.id === orderId ? { ...o, completed: true, paymentMode } : o
       )
     );
   }, []);
@@ -219,6 +220,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         text += `--- ${date} (${dayOrders.length} orders, Rs.${dayTotal}) ---\n`;
         dayOrders.forEach((o, idx) => {
           text += `  Order #${idx + 1} (${new Date(o.createdAt).toLocaleTimeString()}):\n`;
+          text += `    Payment: ${o.paymentMode === "online" ? "Online" : o.paymentMode === "cash" ? "Cash" : "Not selected"}\n`;
           o.items.forEach((item) => {
             const type = itemTypes.find((t) => t.id === item.typeId);
             const flavorNames = item.flavorIds

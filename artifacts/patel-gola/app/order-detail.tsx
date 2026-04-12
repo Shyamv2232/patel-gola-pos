@@ -18,7 +18,7 @@ import FlavorCard from "@/components/FlavorCard";
 import ItemTypeButton from "@/components/ItemTypeButton";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
-import type { OrderItem } from "@/constants/flavors";
+import type { OrderItem, PaymentMode } from "@/constants/flavors";
 
 function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9);
@@ -135,10 +135,18 @@ export default function OrderDetailScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
-  const handleComplete = () => {
-    completeOrder(order.id);
+  const finishOrder = (paymentMode: PaymentMode) => {
+    completeOrder(order.id, paymentMode);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
+  };
+
+  const handleComplete = () => {
+    Alert.alert("Payment Mode", "Select payment mode for this order.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Cash", onPress: () => finishOrder("cash") },
+      { text: "Online", onPress: () => finishOrder("online") },
+    ]);
   };
 
   const hasSelection =
