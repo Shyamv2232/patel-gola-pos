@@ -32454,30 +32454,8 @@ app.get("/", (_req, res) => {
   res.json({ message: "Patel Gola POS API Server is running" });
 });
 var app_default = app;
-
-// src/index.ts
-var rawPort = process.env["PORT"];
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided."
-  );
-}
-var port = Number(rawPort);
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-if (!process.env.VERCEL) {
-  app_default.listen(port, (err) => {
-    if (err) {
-      logger.error({ err }, "Error listening on port");
-      process.exit(1);
-    }
-    logger.info({ port }, "Server listening");
-  });
-}
-var src_default = app_default;
 export {
-  src_default as default
+  app_default as default
 };
 /*! Bundled license information:
 
