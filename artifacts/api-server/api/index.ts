@@ -1,3 +1,3 @@
-// import app from "../src/app.js";
+// @ts-ignore
 import app from "./app.bundle.mjs";
 export default app;
