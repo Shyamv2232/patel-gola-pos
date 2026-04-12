@@ -11,9 +11,15 @@ interface Props {
   order: Order;
   onPress: () => void;
   showActions?: boolean;
+  onCompletePress?: (orderId: string) => void;
 }
 
-export default function OrderCard({ order, onPress, showActions = true }: Props) {
+export default function OrderCard({
+  order,
+  onPress,
+  showActions = true,
+  onCompletePress,
+}: Props) {
   const colors = useColors();
   const { flavors, itemTypes, getOrderTotal, completeOrder, deleteOrder } =
     useApp();
@@ -30,6 +36,10 @@ export default function OrderCard({ order, onPress, showActions = true }: Props)
   };
 
   const handleComplete = () => {
+    if (onCompletePress) {
+      onCompletePress(order.id);
+      return;
+    }
     Alert.alert("Payment Mode", "Select payment mode for this order.", [
       { text: "Cancel", style: "cancel" },
       { text: "Cash", onPress: () => finishOrder("cash") },

@@ -8,19 +8,33 @@ import {
   Text,
   View,
 } from "react-native";
+import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import OrderCard from "@/components/OrderCard";
+import PaymentModal from "@/components/PaymentModal";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import type { PaymentMode } from "@/constants/flavors";
 
 export default function OrdersScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
-  const { activeOrders } = useApp();
+   const router = useRouter();
+  const { activeOrders, completeOrder } = useApp();
+  const [paymentModalVisible, setPaymentModalVisible] = React.useState(false);
+  const [selectedOrderId, setSelectedOrderId] = React.useState<string | null>(null);
 
-  const webTopPad = Platform.OS === "web" ? 67 : 0;
+   const webTopPad = Platform.OS === "web" ? 67 : 0;
+
+  const handleCompleteOrder = (mode: PaymentMode) => {
+    if (selectedOrderId) {
+      completeOrder(selectedOrderId, mode);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    setPaymentModalVisible(false);
+    setSelectedOrderId(null);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -64,6 +78,14 @@ export default function OrdersScreen() {
                   params: { orderId: item.id },
                 })
               }
+              onCompletePress={
+                Platform.OS === "web"
+                  ? (id: string) => {
+                      setSelectedOrderId(id);
+                      setPaymentModalVisible(true);
+                    }
+                  : undefined
+              }
             />
           )}
           contentContainerStyle={[
@@ -77,6 +99,15 @@ export default function OrdersScreen() {
           scrollEnabled={activeOrders.length > 0}
         />
       )}
+
+      <PaymentModal
+        visible={paymentModalVisible}
+        onClose={() => {
+          setPaymentModalVisible(false);
+          setSelectedOrderId(null);
+        }}
+        onSelect={handleCompleteOrder}
+      />
     </View>
   );
 }
