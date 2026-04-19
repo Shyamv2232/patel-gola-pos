@@ -12,6 +12,7 @@ interface Props {
   onPress: () => void;
   showActions?: boolean;
   onCompletePress?: (orderId: string) => void;
+  hideTotal?: boolean;
 }
 
 export default function OrderCard({
@@ -19,6 +20,7 @@ export default function OrderCard({
   onPress,
   showActions = true,
   onCompletePress,
+  hideTotal = false,
 }: Props) {
   const colors = useColors();
   const { flavors, itemTypes, getOrderTotal, completeOrder, deleteOrder } =
@@ -68,14 +70,14 @@ export default function OrderCard({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={[styles.time, { color: colors.mutedForeground }]}>
-            {time}
+            {time} {order.customerName ? `• ${order.customerName}` : ""}
           </Text>
           <Text style={[styles.itemCount, { color: colors.foreground }]}>
             {order.items.length} item{order.items.length !== 1 ? "s" : ""}
           </Text>
         </View>
         <Text style={[styles.total, { color: colors.primary }]}>
-          Rs.{total}
+          {hideTotal ? "****" : `Rs.${total}`}
         </Text>
       </View>
 

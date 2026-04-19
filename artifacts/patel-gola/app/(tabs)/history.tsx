@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   View,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -44,6 +45,9 @@ export default function HistoryScreen() {
   const today = getDateKey(new Date());
   const [selectedDate, setSelectedDate] = useState(today);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinInput, setPinInput] = useState("");
 
   const last7Days: string[] = [];
   for (let i = 0; i < 7; i++) {
@@ -103,6 +107,19 @@ export default function HistoryScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setShowConfirmClear(false);
     window.alert("Old data cleared!");
+  };
+
+  const handlePinSubmit = () => {
+    if (pinInput === "2709") {
+      setIsAuthorized(true);
+      setShowPinModal(false);
+      setPinInput("");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      Alert.alert("Error", "Incorrect PIN");
+      setPinInput("");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
   };
 
   return (
@@ -193,9 +210,11 @@ export default function HistoryScreen() {
         <Text style={[styles.summaryText, { color: colors.foreground }]}>
           {dayOrders.length} orders
         </Text>
-        <Text style={[styles.summaryRevenue, { color: colors.primary }]}>
-          Rs.{dayRevenue}
-        </Text>
+        <Pressable onPress={() => !isAuthorized && setShowPinModal(true)}>
+          <Text style={[styles.summaryRevenue, { color: colors.primary }]}>
+            {isAuthorized ? `Rs.${dayRevenue}` : "****"}
+          </Text>
+        </Pressable>
       </View>
 
       {dayOrders.length === 0 ? (
@@ -216,7 +235,12 @@ export default function HistoryScreen() {
           data={dayOrders}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <OrderCard order={item} onPress={() => {}} showActions={false} />
+            <OrderCard
+              order={item}
+              onPress={() => { }}
+              showActions={false}
+              hideTotal={!isAuthorized}
+            />
           )}
           contentContainerStyle={[
             styles.list,
@@ -241,6 +265,32 @@ export default function HistoryScreen() {
               </Pressable>
               <Pressable onPress={confirmWebClear} style={[styles.webConfirmBtn, { backgroundColor: "#ef4444" }]}>
                 <Text style={{ color: "#fff" }}>Clear</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {showPinModal && (
+        <View style={styles.webConfirmOverlay}>
+          <View style={[styles.webConfirmBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.webConfirmTitle, { color: colors.foreground }]}>Admin Authorization</Text>
+            <Text style={[styles.webConfirmText, { color: colors.mutedForeground }]}>Enter PIN to view revenue data.</Text>
+            <TextInput
+              style={[styles.pinInput, { color: colors.foreground, borderColor: colors.border }]}
+              keyboardType="number-pad"
+              secureTextEntry
+              autoFocus
+              value={pinInput}
+              onChangeText={setPinInput}
+              onSubmitEditing={handlePinSubmit}
+            />
+            <View style={styles.webConfirmActions}>
+              <Pressable onPress={() => setShowPinModal(false)} style={[styles.webConfirmBtn, { backgroundColor: colors.border }]}>
+                <Text style={{ color: colors.foreground }}>Cancel</Text>
+              </Pressable>
+              <Pressable onPress={handlePinSubmit} style={[styles.webConfirmBtn, { backgroundColor: colors.primary }]}>
+                <Text style={{ color: colors.primaryForeground }}>Unlock</Text>
               </Pressable>
             </View>
           </View>
@@ -372,5 +422,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
+  },
+  pinInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+    fontSize: 18,
+    textAlign: "center",
+    letterSpacing: 4,
   },
 });

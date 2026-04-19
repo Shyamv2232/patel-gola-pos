@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  TextInput,
 } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
@@ -14,15 +15,24 @@ import type { PaymentMode } from "@/constants/flavors";
 interface PaymentModalProps {
   visible: boolean;
   onClose: () => void;
-  onSelect: (mode: PaymentMode) => void;
+  onSelect: (mode: PaymentMode, finalAmount: number) => void;
+  initialAmount?: number;
 }
 
 export default function PaymentModal({
   visible,
   onClose,
   onSelect,
+  initialAmount,
 }: PaymentModalProps) {
   const colors = useColors();
+  const [amount, setAmount] = React.useState(initialAmount?.toString() ?? "0");
+
+  React.useEffect(() => {
+    if (visible && initialAmount !== undefined) {
+      setAmount(initialAmount.toString());
+    }
+  }, [visible, initialAmount]);
 
   return (
     <Modal
@@ -45,9 +55,26 @@ export default function PaymentModal({
             How did the customer pay for this order?
           </Text>
 
+          <View style={styles.amountContainer}>
+            <Text style={[styles.amountLabel, { color: colors.foreground }]}>Final Amount (Rs.)</Text>
+            <TextInput
+              style={[
+                styles.amountInput,
+                { 
+                  backgroundColor: colors.background, 
+                  color: colors.foreground,
+                  borderColor: colors.border
+                }
+              ]}
+              keyboardType="number-pad"
+              value={amount}
+              onChangeText={setAmount}
+            />
+          </View>
+
           <View style={styles.options}>
             <Pressable
-              onPress={() => onSelect("cash")}
+              onPress={() => onSelect("cash", Number(amount) || 0)}
               style={({ pressed }) => [
                 styles.optionBtn,
                 {
@@ -62,7 +89,7 @@ export default function PaymentModal({
             </Pressable>
 
             <Pressable
-              onPress={() => onSelect("online")}
+              onPress={() => onSelect("online", Number(amount) || 0)}
               style={({ pressed }) => [
                 styles.optionBtn,
                 {
@@ -155,5 +182,21 @@ const styles = StyleSheet.create({
   cancelText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
+  },
+  amountContainer: {
+    marginBottom: 20,
+  },
+  amountLabel: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    marginBottom: 8,
+  },
+  amountInput: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
   },
 });

@@ -51,4 +51,6 @@ export interface Order {
   createdAt: string;
   completed: boolean;
   paymentMode?: PaymentMode;
+  customerName?: string;
+  finalAmount?: number;
 }

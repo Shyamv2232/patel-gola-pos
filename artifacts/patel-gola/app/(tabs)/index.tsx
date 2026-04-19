@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   View,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -35,6 +36,7 @@ export default function NewOrderScreen() {
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [currentItems, setCurrentItems] = useState<OrderItem[]>([]);
+  const [customerName, setCustomerName] = useState("");
 
   const activeFlavors = flavors.filter((f) => f.active);
 
@@ -97,10 +99,11 @@ export default function NewOrderScreen() {
 
   const handleSubmitOrder = () => {
     if (currentItems.length === 0) return;
-    createOrder(currentItems);
+    createOrder(currentItems, customerName);
     setCurrentItems([]);
     setSelectedFlavors([]);
     setQuantities({});
+    setCustomerName("");
     router.push("/orders");
   };
 
@@ -108,6 +111,7 @@ export default function NewOrderScreen() {
     setCurrentItems([]);
     setSelectedFlavors([]);
     setQuantities({});
+    setCustomerName("");
   };
 
   const hasSelection =
@@ -135,12 +139,7 @@ export default function NewOrderScreen() {
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{todayOrderCount}</Text>
-            <Text style={styles.statLabel}>Orders</Text>
-          </View>
-          <View style={[styles.statDivider, { backgroundColor: "#ffffff40" }]} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>Rs.{todayRevenue}</Text>
-            <Text style={styles.statLabel}>Today</Text>
+            <Text style={styles.statLabel}>Orders Placed Today</Text>
           </View>
         </View>
       </View>
@@ -221,6 +220,24 @@ export default function NewOrderScreen() {
             </Text>
           </Pressable>
         )}
+        
+        {currentItems.length > 0 && (
+          <TextInput
+            style={[
+              styles.customerInput,
+              { 
+                backgroundColor: colors.background, 
+                color: colors.foreground,
+                borderColor: colors.border
+              }
+            ]}
+            placeholder="Customer Name (Optional)"
+            placeholderTextColor={colors.mutedForeground}
+            value={customerName}
+            onChangeText={setCustomerName}
+          />
+        )}
+
         <CurrentOrderBar
           currentItems={currentItems}
           itemTypes={itemTypes}
@@ -327,5 +344,15 @@ const styles = StyleSheet.create({
   addItemText: {
     fontSize: 15,
     fontFamily: "Inter_700Bold",
+  },
+  customerInput: {
+    marginHorizontal: 12,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
   },
 });

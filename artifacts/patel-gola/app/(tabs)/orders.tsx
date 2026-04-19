@@ -20,21 +20,28 @@ import type { PaymentMode } from "@/constants/flavors";
 export default function OrdersScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-   const router = useRouter();
-  const { activeOrders, completeOrder } = useApp();
+  const router = useRouter();
+  const { activeOrders, completeOrder, itemTypes } = useApp();
   const [paymentModalVisible, setPaymentModalVisible] = React.useState(false);
   const [selectedOrderId, setSelectedOrderId] = React.useState<string | null>(null);
 
    const webTopPad = Platform.OS === "web" ? 67 : 0;
 
-  const handleCompleteOrder = (mode: PaymentMode) => {
+  const handleCompleteOrder = (mode: PaymentMode, finalAmount?: number) => {
     if (selectedOrderId) {
-      completeOrder(selectedOrderId, mode);
+      completeOrder(selectedOrderId, mode, finalAmount);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     setPaymentModalVisible(false);
     setSelectedOrderId(null);
   };
+
+  const selectedOrder = activeOrders.find(o => o.id === selectedOrderId);
+  // Calculate total normally to prepopulate it
+  const selectedOrderTotal = selectedOrder ? selectedOrder.items.reduce((total, item) => {
+    const type = itemTypes.find((t) => t.id === item.typeId);
+    return total + (type?.price ?? 0) * item.quantity;
+  }, 0) : 0;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -78,14 +85,10 @@ export default function OrdersScreen() {
                   params: { orderId: item.id },
                 })
               }
-              onCompletePress={
-                Platform.OS === "web"
-                  ? (id: string) => {
-                      setSelectedOrderId(id);
-                      setPaymentModalVisible(true);
-                    }
-                  : undefined
-              }
+              onCompletePress={(id: string) => {
+                setSelectedOrderId(id);
+                setPaymentModalVisible(true);
+              }}
             />
           )}
           contentContainerStyle={[
@@ -107,6 +110,7 @@ export default function OrdersScreen() {
           setSelectedOrderId(null);
         }}
         onSelect={handleCompleteOrder}
+        initialAmount={selectedOrderTotal}
       />
     </View>
   );
