@@ -43,6 +43,7 @@ export default function HistoryScreen() {
 
   const today = getDateKey(new Date());
   const [selectedDate, setSelectedDate] = useState(today);
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
 
   const last7Days: string[] = [];
   for (let i = 0; i < 7; i++) {
@@ -58,15 +59,12 @@ export default function HistoryScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const data = exportWeeklyData();
     if (Platform.OS === "web") {
-      const blob = new Blob([data], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `patel-gola-weekly-report-${getDateKey(new Date())}.txt`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      try {
+        await navigator.clipboard.writeText(data);
+        window.alert("Export copied to clipboard!");
+      } catch (err) {
+        console.error("Failed to copy:", err);
+      }
     } else {
       try {
         await Share.share({ message: data, title: "Patel Gola Weekly Report" });
@@ -78,10 +76,7 @@ export default function HistoryScreen() {
 
   const handleClearOld = () => {
     if (Platform.OS === "web") {
-      if (window.confirm("This will remove all orders older than 7 days. Continue?")) {
-        clearOldData();
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      setShowConfirmClear(true);
     } else {
       Alert.alert(
         "Clear Old Data",
@@ -101,6 +96,13 @@ export default function HistoryScreen() {
         ]
       );
     }
+  };
+
+  const confirmWebClear = () => {
+    clearOldData();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setShowConfirmClear(false);
+    window.alert("Old data cleared!");
   };
 
   return (
@@ -227,6 +229,23 @@ export default function HistoryScreen() {
           scrollEnabled={dayOrders.length > 0}
         />
       )}
+
+      {showConfirmClear && (
+        <View style={styles.webConfirmOverlay}>
+          <View style={[styles.webConfirmBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.webConfirmTitle, { color: colors.foreground }]}>Clear Old Data</Text>
+            <Text style={[styles.webConfirmText, { color: colors.mutedForeground }]}>This will remove all orders older than 7 days. Continue?</Text>
+            <View style={styles.webConfirmActions}>
+              <Pressable onPress={() => setShowConfirmClear(false)} style={[styles.webConfirmBtn, { backgroundColor: colors.border }]}>
+                <Text style={{ color: colors.foreground }}>Cancel</Text>
+              </Pressable>
+              <Pressable onPress={confirmWebClear} style={[styles.webConfirmBtn, { backgroundColor: "#ef4444" }]}>
+                <Text style={{ color: "#fff" }}>Clear</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -319,5 +338,39 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 12,
+  },
+  webConfirmOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  webConfirmBox: {
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    width: "80%",
+    maxWidth: 400,
+  },
+  webConfirmTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    marginBottom: 8,
+  },
+  webConfirmText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    marginBottom: 20,
+  },
+  webConfirmActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+  },
+  webConfirmBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
 });
