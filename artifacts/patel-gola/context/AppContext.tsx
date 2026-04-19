@@ -58,20 +58,25 @@ function getDateKey(date: Date): string {
 }
 
 // Custom API fetcher
-const API_URL = "/api";
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "/api";
 async function api(path: string, options?: RequestInit) {
+  const url = `${API_URL}${path}`;
   try {
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
         ...(options?.headers || {}),
       },
     });
-    if (!res.ok) throw new Error("API Request failed");
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`API Request failed for ${url}:`, text);
+      throw new Error(`API Request failed: ${res.status}`);
+    }
     return await res.json();
   } catch (err) {
-    console.error("API error:", err);
+    console.error(`Network or API error at ${url}:`, err);
     throw err;
   }
 }

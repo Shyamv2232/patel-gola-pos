@@ -55,18 +55,28 @@ router.put("/itemTypes/:id", async (req: any, res: any) => {
 
 // Orders
 router.post("/orders", async (req: any, res: any) => {
-  const { id, createdAt, completed, items, customerName } = req.body;
-  await db.insert(orders).values({ id, createdAt: new Date(createdAt), completed, customerName });
-  if (items && items.length > 0) {
-    await db.insert(orderItems).values(items.map((i: any) => ({
-      id: i.id,
-      orderId: id,
-      typeId: i.typeId,
-      quantity: i.quantity,
-      flavorIds: i.flavorIds
-    })));
+  try {
+    const { id, createdAt, completed, items, customerName } = req.body;
+    console.log(`Creating order ${id} for ${customerName}`);
+    
+    await db.insert(orders).values({ id, createdAt: new Date(createdAt), completed, customerName });
+    
+    if (items && items.length > 0) {
+      await db.insert(orderItems).values(items.map((i: any) => ({
+        id: i.id,
+        orderId: id,
+        typeId: i.typeId,
+        quantity: i.quantity,
+        flavorIds: i.flavorIds
+      })));
+    }
+    
+    console.log(`Order ${id} saved successfully`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ error: "Failed to save order", details: error });
   }
-  res.json({ success: true });
 });
 
 router.delete("/orders/:id", async (req: any, res: any) => {
@@ -76,9 +86,15 @@ router.delete("/orders/:id", async (req: any, res: any) => {
 });
 
 router.put("/orders/:id/complete", async (req: any, res: any) => {
-  const { paymentMode, finalAmount } = req.body;
-  await db.update(orders).set({ completed: true, paymentMode, finalAmount }).where(eq(orders.id, req.params.id));
-  res.json({ success: true });
+  try {
+    const { paymentMode, finalAmount } = req.body;
+    console.log(`Completing order ${req.params.id} with mode: ${paymentMode}`);
+    await db.update(orders).set({ completed: true, paymentMode, finalAmount }).where(eq(orders.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error completing order:", error);
+    res.status(500).json({ error: "Failed to complete order" });
+  }
 });
 
 // Order Items
