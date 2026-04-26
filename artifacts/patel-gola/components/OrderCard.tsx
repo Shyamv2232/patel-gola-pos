@@ -82,7 +82,7 @@ export default function OrderCard({
       </View>
 
       <View style={styles.items}>
-        {order.items.slice(0, 3).map((item) => {
+        {order.items.map((item) => {
           const type = itemTypes.find((t) => t.id === item.typeId);
           const flavorNames = item.flavorIds
             .map((fid) => flavors.find((f) => f.id === fid)?.name ?? "")
@@ -92,17 +92,11 @@ export default function OrderCard({
             <Text
               key={item.id}
               style={[styles.itemText, { color: colors.mutedForeground }]}
-              numberOfLines={1}
             >
               {type?.name} x{item.quantity} - {flavorNames}
             </Text>
           );
         })}
-        {order.items.length > 3 && (
-          <Text style={[styles.moreText, { color: colors.info }]}>
-            +{order.items.length - 3} more
-          </Text>
-        )}
         {order.completed && (
           <View
             style={[

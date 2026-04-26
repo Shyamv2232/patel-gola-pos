@@ -181,8 +181,8 @@ export default function OrderDetailScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
-  const finishOrder = (paymentMode: PaymentMode) => {
-    completeOrder(order.id, paymentMode);
+  const finishOrder = (paymentMode: PaymentMode, finalAmount: number) => {
+    completeOrder(order.id, paymentMode, finalAmount);
     setPaymentModalVisible(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
@@ -571,6 +571,7 @@ export default function OrderDetailScreen() {
         visible={paymentModalVisible}
         onClose={() => setPaymentModalVisible(false)}
         onSelect={finishOrder}
+        initialAmount={total}
       />
     </View>
   );

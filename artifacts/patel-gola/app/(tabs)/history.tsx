@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import React, { useState } from "react";
+import { useFocusEffect } from "expo-router";
+import React, { useState, useCallback } from "react";
 import {
   Alert,
   FlatList,
@@ -58,6 +59,21 @@ export default function HistoryScreen() {
 
   const dayOrders = getDailyOrders(selectedDate).filter((o) => o.completed);
   const dayRevenue = dayOrders.reduce((s, o) => s + getOrderTotal(o), 0);
+  const cashRevenue = dayOrders
+    .filter((o) => o.paymentMode === "cash")
+    .reduce((s, o) => s + getOrderTotal(o), 0);
+  const onlineRevenue = dayOrders
+    .filter((o) => o.paymentMode === "online")
+    .reduce((s, o) => s + getOrderTotal(o), 0);
+
+  // Reset authorization when tab loses focus
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setIsAuthorized(false);
+      };
+    }, [])
+  );
 
   const handleExport = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -207,10 +223,30 @@ export default function HistoryScreen() {
           { backgroundColor: colors.card, borderColor: colors.border },
         ]}
       >
-        <Text style={[styles.summaryText, { color: colors.foreground }]}>
-          {dayOrders.length} orders
-        </Text>
-        <Pressable onPress={() => !isAuthorized && setShowPinModal(true)}>
+        <View style={styles.summaryInfo}>
+          <Text style={[styles.summaryText, { color: colors.foreground }]}>
+            {dayOrders.length} orders
+          </Text>
+          <View style={styles.revenueCategories}>
+            <View style={styles.categoryItem}>
+              <Text style={[styles.categoryLabel, { color: colors.mutedForeground }]}>Cash:</Text>
+              <Text style={[styles.categoryValue, { color: "#22c55e" }]}>
+                {isAuthorized ? `Rs.${cashRevenue}` : "****"}
+              </Text>
+            </View>
+            <View style={styles.categoryItem}>
+              <Text style={[styles.categoryLabel, { color: colors.mutedForeground }]}>Online:</Text>
+              <Text style={[styles.categoryValue, { color: colors.info }]}>
+                {isAuthorized ? `Rs.${onlineRevenue}` : "****"}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <Pressable 
+          onPress={() => !isAuthorized && setShowPinModal(true)}
+          style={styles.totalContainer}
+        >
+          <Text style={[styles.totalLabel, { color: colors.mutedForeground }]}>Total</Text>
           <Text style={[styles.summaryRevenue, { color: colors.primary }]}>
             {isAuthorized ? `Rs.${dayRevenue}` : "****"}
           </Text>
@@ -361,18 +397,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 12,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 12,
+    borderRadius: 12,
     borderWidth: 1,
     marginBottom: 8,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  summaryInfo: {
+    flex: 1,
   },
   summaryText: {
     fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    marginBottom: 6,
+  },
+  revenueCategories: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  categoryItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  categoryLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+  },
+  categoryValue: {
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
-  summaryRevenue: {
-    fontSize: 18,
+  totalContainer: {
+    alignItems: "flex-end",
+  },
+  totalLabel: {
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
+    textTransform: "uppercase",
+  },
+  summaryRevenue: {
+    fontSize: 20,
+    fontFamily: "Inter_800ExtraBold",
   },
   emptyState: {
     flex: 1,
