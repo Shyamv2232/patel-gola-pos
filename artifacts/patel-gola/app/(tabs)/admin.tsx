@@ -136,32 +136,29 @@ export default function AdminScreen() {
       return;
     }
 
-    Alert.confirm?.("Confirm Import", "This will merge data into your database. Continue?", [
-      { text: "Cancel", style: "cancel" },
-      { 
-        text: "Merge Data", 
-        onPress: async () => {
-          const result = await importJSON(backupInput);
-          if (result.success) {
-            Alert.alert("Success", result.message);
-            setBackupInput("");
-          } else {
-            Alert.alert("Failed", result.message);
+    Alert.alert(
+      "Confirm Import",
+      "This will merge data into your database. Continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Import & Merge", 
+          onPress: async () => {
+            try {
+              const result = await importJSON(backupInput);
+              if (result.success) {
+                Alert.alert("Success", result.message);
+                setBackupInput("");
+              } else {
+                Alert.alert("Import Failed", result.message);
+              }
+            } catch (err: any) {
+              Alert.alert("Error", err.message || "An error occurred during import");
+            }
           }
         }
-      }
-    ]) ?? // Fallback for simple systems
-    Alert.alert("Confirm Import", "This will merge data. Continue?", [
-      { text: "Cancel", style: "cancel" },
-      { 
-        text: "Import", 
-        onPress: async () => {
-          const result = await importJSON(backupInput);
-          Alert.alert(result.success ? "Success" : "Error", result.message);
-          if (result.success) setBackupInput("");
-        }
-      }
-    ]);
+      ]
+    );
   };
 
   return (
