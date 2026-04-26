@@ -50,12 +50,8 @@ export default function HistoryScreen() {
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState("");
 
-  const last7Days: string[] = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    last7Days.push(getDateKey(d));
-  }
+  const availableDates = Array.from(new Set(completedOrders.map(o => o.createdAt.split('T')[0]))).sort().reverse();
+  const displayDates = availableDates.length > 0 ? availableDates : [today];
 
   const dayOrders = getDailyOrders(selectedDate).filter((o) => o.completed);
   const dayRevenue = dayOrders.reduce((s, o) => s + getOrderTotal(o), 0);
@@ -100,7 +96,7 @@ export default function HistoryScreen() {
     } else {
       Alert.alert(
         "Clear Old Data",
-        "This will remove all orders older than 7 days. Continue?",
+        "This will remove all orders older than 1 year. Continue?",
         [
           { text: "Cancel", style: "cancel" },
           {
@@ -166,7 +162,7 @@ export default function HistoryScreen() {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={last7Days}
+          data={displayDates}
           keyExtractor={(item) => item}
           contentContainerStyle={styles.dateList}
           renderItem={({ item }) => {
@@ -294,7 +290,7 @@ export default function HistoryScreen() {
         <View style={styles.webConfirmOverlay}>
           <View style={[styles.webConfirmBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.webConfirmTitle, { color: colors.foreground }]}>Clear Old Data</Text>
-            <Text style={[styles.webConfirmText, { color: colors.mutedForeground }]}>This will remove all orders older than 7 days. Continue?</Text>
+            <Text style={[styles.webConfirmText, { color: colors.mutedForeground }]}>This will remove all orders older than 1 year. Continue?</Text>
             <View style={styles.webConfirmActions}>
               <Pressable onPress={() => setShowConfirmClear(false)} style={[styles.webConfirmBtn, { backgroundColor: colors.border }]}>
                 <Text style={{ color: colors.foreground }}>Cancel</Text>

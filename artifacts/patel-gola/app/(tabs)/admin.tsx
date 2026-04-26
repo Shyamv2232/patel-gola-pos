@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useTheme, type ThemeMode } from "@/context/ThemeContext";
 import { useColors } from "@/hooks/useColors";
+import { shareAsync } from "expo-sharing";
 
 const PRESET_COLORS = [
   "#4361ee",
@@ -42,6 +43,7 @@ export default function AdminScreen() {
   const colors = useColors();
   const { themeMode, setThemeMode } = useTheme();
   const insets = useSafeAreaInsets();
+  const [tab, setTab] = useState<"flavors" | "prices" | "theme" | "migration">("flavors");
   const {
     flavors,
     itemTypes,
@@ -50,9 +52,10 @@ export default function AdminScreen() {
     updateFlavor,
     toggleFlavor,
     updateItemTypePrice,
+    exportJSON,
+    importJSON,
   } = useApp();
 
-  const [tab, setTab] = useState<"flavors" | "prices" | "theme">("flavors");
   const [newFlavorName, setNewFlavorName] = useState("");
   const [newFlavorColor, setNewFlavorColor] = useState(PRESET_COLORS[0]);
   const [editingFlavor, setEditingFlavor] = useState<string | null>(null);
@@ -60,6 +63,7 @@ export default function AdminScreen() {
   const [editColor, setEditColor] = useState("");
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
   const [editPriceValue, setEditPriceValue] = useState("");
+  const [backupInput, setBackupInput] = useState("");
 
   const handleAddFlavor = () => {
     if (!newFlavorName.trim()) {
@@ -108,6 +112,56 @@ export default function AdminScreen() {
     updateItemTypePrice(editingPrice, price);
     setEditingPrice(null);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleExportJSON = async () => {
+    const json = exportJSON();
+    if (Platform.OS === "web") {
+      try {
+        await navigator.clipboard.writeText(json);
+        Alert.alert("Exported", "Backup copied to clipboard! Paste it into your new link.");
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      // In native, we could save to file, but clipboard is easier for user migration
+      await navigator.clipboard.writeText(json);
+      Alert.alert("Exported", "Backup JSON copied to clipboard.");
+    }
+  };
+
+  const handleImportJSON = async () => {
+    if (!backupInput.trim()) {
+      Alert.alert("Error", "Please paste the backup JSON first.");
+      return;
+    }
+
+    Alert.confirm?.("Confirm Import", "This will merge data into your database. Continue?", [
+      { text: "Cancel", style: "cancel" },
+      { 
+        text: "Merge Data", 
+        onPress: async () => {
+          const result = await importJSON(backupInput);
+          if (result.success) {
+            Alert.alert("Success", result.message);
+            setBackupInput("");
+          } else {
+            Alert.alert("Failed", result.message);
+          }
+        }
+      }
+    ]) ?? // Fallback for simple systems
+    Alert.alert("Confirm Import", "This will merge data. Continue?", [
+      { text: "Cancel", style: "cancel" },
+      { 
+        text: "Import", 
+        onPress: async () => {
+          const result = await importJSON(backupInput);
+          Alert.alert(result.success ? "Success" : "Error", result.message);
+          if (result.success) setBackupInput("");
+        }
+      }
+    ]);
   };
 
   return (
@@ -198,6 +252,31 @@ export default function AdminScreen() {
             ]}
           >
             Theme
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setTab("migration")}
+          style={[
+            styles.tabBtn,
+            {
+              backgroundColor:
+                tab === "migration" ? colors.primary : colors.card,
+              borderRadius: colors.radius,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              {
+                color:
+                  tab === "migration"
+                    ? colors.primaryForeground
+                    : colors.foreground,
+              },
+            ]}
+          >
+            Migrate
           </Text>
         </Pressable>
       </View>
@@ -491,6 +570,58 @@ export default function AdminScreen() {
               )}
             </View>
           ))}
+        </View>
+      ) : tab === "migration" ? (
+        <View style={styles.migrationSection}>
+          <Text style={[styles.themeTitle, { color: colors.foreground }]}>
+            Data Migration
+          </Text>
+          <Text style={[styles.themeDescription, { color: colors.mutedForeground }]}>
+            Move your data (orders, flavors, prices) from one link to another.
+          </Text>
+
+          <View style={[styles.migrationCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.migrationStep, { color: colors.primary }]}>Step 1: Export from OLD link</Text>
+            <Text style={[styles.migrationCardText, { color: colors.foreground }]}>
+              Open your old website link, go to this tab, and click Export. It will copy your data to the clipboard.
+            </Text>
+            <Pressable
+              onPress={handleExportJSON}
+              style={[styles.migrationBtn, { backgroundColor: colors.primary }]}
+            >
+              <Feather name="copy" size={18} color="#fff" />
+              <Text style={styles.migrationBtnText}>Export JSON Backup</Text>
+            </Pressable>
+          </View>
+
+          <View style={[styles.migrationCard, { backgroundColor: colors.card, borderColor: colors.border, marginTop: 16 }]}>
+            <Text style={[styles.migrationStep, { color: colors.primary }]}>Step 2: Import to NEW link</Text>
+            <Text style={[styles.migrationCardText, { color: colors.foreground }]}>
+              Open your new link, paste the text below, and click Import.
+            </Text>
+            <TextInput
+              style={[
+                styles.backupInput,
+                { 
+                  backgroundColor: colors.background, 
+                  color: colors.foreground,
+                  borderColor: colors.border
+                }
+              ]}
+              multiline
+              placeholder="Paste JSON backup here..."
+              placeholderTextColor={colors.mutedForeground}
+              value={backupInput}
+              onChangeText={setBackupInput}
+            />
+            <Pressable
+              onPress={handleImportJSON}
+              style={[styles.migrationBtn, { backgroundColor: colors.success }]}
+            >
+              <Feather name="upload" size={18} color="#fff" />
+              <Text style={styles.migrationBtnText}>Import & Merge Data</Text>
+            </Pressable>
+          </View>
         </View>
       ) : (
         <View style={styles.themeSection}>
@@ -802,5 +933,47 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
+  },
+  migrationSection: {
+    padding: 12,
+  },
+  migrationCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  migrationStep: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    marginBottom: 6,
+  },
+  migrationCardText: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  migrationBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  migrationBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+  },
+  backupInput: {
+    height: 100,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 12,
+    fontFamily: "monospace",
+    textAlignVertical: "top",
+    marginBottom: 12,
   },
 });

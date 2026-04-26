@@ -36,6 +36,8 @@ interface AppContextType {
   getOrderTotal: (order: Order) => number;
   getDailyOrders: (date: string) => Order[];
   exportWeeklyData: () => string;
+  exportJSON: () => string;
+  importJSON: (json: string) => Promise<{ success: boolean; message: string }>;
   clearOldData: () => void;
   todayRevenue: number;
   todayOrderCount: number;
@@ -250,9 +252,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return text;
   }, [orders, itemTypes, flavors, getOrderTotal]);
 
+  const exportJSON = useCallback((): string => {
+    return JSON.stringify({
+      flavors,
+      itemTypes,
+      orders,
+      exportedAt: new Date().toISOString()
+    }, null, 2);
+  }, [flavors, itemTypes, orders]);
+
+  const importJSON = useCallback(async (jsonStr: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const data = JSON.parse(jsonStr);
+      if (!data.orders || !Array.isArray(data.orders)) {
+        throw new Error("Invalid backup format: Missing orders array");
+      }
+
+      // 1. Update Local State
+      if (data.flavors) setFlavors(data.flavors);
+      if (data.itemTypes) setItemTypes(data.itemTypes);
+      setOrders(data.orders);
+
+      // 2. Sync to Backend
+      await api("/sync", { 
+        method: "POST", 
+        body: JSON.stringify({
+          flavors: data.flavors,
+          itemTypes: data.itemTypes,
+          orders: data.orders
+        }) 
+      });
+
+      return { success: true, message: `Successfully imported ${data.orders.length} orders.` };
+    } catch (err: any) {
+      console.error("Import failed:", err);
+      return { success: false, message: err.message || "Unknown import error" };
+    }
+  }, []);
+
   const clearOldData = useCallback(() => {
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    setOrders((prev) => prev.filter((o) => new Date(o.createdAt) >= weekAgo));
+    const yearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+    setOrders((prev) => prev.filter((o) => new Date(o.createdAt) >= yearAgo));
     api("/clearOld", { method: "POST" }).catch(console.error);
   }, []);
 
@@ -279,6 +319,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         getOrderTotal,
         getDailyOrders,
         exportWeeklyData,
+        exportJSON,
+        importJSON,
         clearOldData,
         todayRevenue,
         todayOrderCount,

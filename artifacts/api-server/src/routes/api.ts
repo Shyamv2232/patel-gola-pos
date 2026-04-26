@@ -118,4 +118,64 @@ router.delete("/orders/:id/items/:itemId", async (req: any, res: any) => {
   res.json({ success: true });
 });
 
+// Bulk Migration Sync
+router.post("/sync", async (req: any, res: any) => {
+  const { flavors: newFlavors, itemTypes: newItemTypes, orders: newOrders } = req.body;
+  try {
+    await db.transaction(async (tx) => {
+      // 1. Sync Flavors
+      if (newFlavors) {
+        for (const f of newFlavors) {
+          await tx.insert(flavors).values(f).onConflictDoUpdate({
+            target: flavors.id,
+            set: f
+          });
+        }
+      }
+
+      // 2. Sync Item Types
+      if (newItemTypes) {
+        for (const t of newItemTypes) {
+          await tx.insert(itemTypes).values(t).onConflictDoUpdate({
+            target: itemTypes.id,
+            set: t
+          });
+        }
+      }
+
+      // 3. Sync Orders & Items
+      if (newOrders) {
+        for (const o of newOrders) {
+          const { items, ...orderData } = o;
+          await tx.insert(orders).values(orderData).onConflictDoUpdate({
+            target: orders.id,
+            set: orderData
+          });
+
+          if (items && items.length > 0) {
+            for (const i of items) {
+              await tx.insert(orderItems).values({ ...i, orderId: o.id }).onConflictDoUpdate({
+                target: orderItems.id,
+                set: i
+              });
+            }
+          }
+        }
+      }
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Sync failed", err);
+    res.status(500).json({ error: "Sync failed" });
+  }
+});
+
+router.post("/clearOld", async (req: any, res: any) => {
+  const yearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
+  // Implementation note: This will delete everything older than 1 year
+  // In a real usage, we join items or cascade delete
+  await db.delete(orders).where(lt(orders.createdAt, yearAgo));
+  res.json({ success: true });
+});
+
 export default router;
