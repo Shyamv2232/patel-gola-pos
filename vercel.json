@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/artifacts/patel-gola/dist/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/artifacts/patel-gola/dist/index.html"
+    }
+  ]
+}

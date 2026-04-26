@@ -58,7 +58,7 @@ function getDateKey(date: Date): string {
 }
 
 // Custom API fetcher
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "/api";
+const API_URL = "/api";
 async function api(path: string, options?: RequestInit) {
   const url = `${API_URL}${path}`;
   try {
